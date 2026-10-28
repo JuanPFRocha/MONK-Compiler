@@ -1,0 +1,6 @@
+int main() {
+    x = 10;
+    if(x >= 8){
+        return x - 1;
+    }
+}
