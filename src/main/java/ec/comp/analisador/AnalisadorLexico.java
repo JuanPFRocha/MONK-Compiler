@@ -29,13 +29,14 @@ public class AnalisadorLexico {
         // Identificadores e Palavras-chave ([a-zA-Z_][a-zA-Z0-9_]*)
         if (AlphaNumericoUtil.isAlphaNumerico(ch) || ch == '_') {
             int start = pos;
-            while (pos < tamanho && (AlphaNumericoUtil.isAlphaNumerico(entrada.charAt(pos)) || entrada.charAt(pos) == '_')) {
+            while (pos < tamanho && (AlphaNumericoUtil.isAlphaNumerico(entrada.charAt(pos)) || AlphaNumericoUtil.isSymbol(entrada.charAt(pos)))) {
                 pos++;
             }
             String lexeme = entrada.substring(start, pos);
             if (this.isPalavraReservada(lexeme)) {
                 return new Token(TipoToken.PALAVRA_RESERVADA, lexeme, 0 , 0);
             }
+
             return new Token(TipoToken.IDENTIFICADOR, lexeme, 0, 0);
         }
 
@@ -48,8 +49,20 @@ public class AnalisadorLexico {
             return new Token(TipoToken.NUMERO, entrada.substring(start, pos), 0, 0);
         }
 
+        //incremento e decremento
+        if(ch == '+' && entrada.charAt(pos + 1) == '+'){
+            int start = pos;
+            pos += 2;
+            return new Token(TipoToken.OPERADOR, entrada.substring(start, pos), 0, 0);
+        }
+        else if(ch == '-' && entrada.charAt(pos+1) == '-'){
+            int start = pos;
+            pos += 2;
+            return new Token(TipoToken.OPERADOR, entrada.substring(start, pos), 0, 0);
+        }
+
         // Operadores compostos de dois caracteres (==, !=, <=, >=)
-        if (ch == '=' || ch == '!' || ch == '<' || ch == '>') {
+        if (ch == '=' || ch == '!' || ch == '<' || ch == '>' || ch == '+' || ch == '-' || ch == '*' || ch == '/') {
             int start = pos;
             pos++;
             if (pos < tamanho && entrada.charAt(pos) == '=') {
@@ -57,6 +70,8 @@ public class AnalisadorLexico {
             }
             return new Token(TipoToken.OPERADOR, entrada.substring(start, pos), 0, 0);
         }
+
+
 
         // Operadores simples (+, -, *, /)
         if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
@@ -68,6 +83,21 @@ public class AnalisadorLexico {
         if (ch == '(' || ch == ')' || ch == '{' || ch == '}' || ch == ';' || ch == ',') {
             pos++;
             return new Token(TipoToken.DELIMITADOR, String.valueOf(ch), 0, 0);
+        }
+
+        //Strings
+        if(ch == '"'){
+            int start = pos;
+            pos++;
+            while(pos < tamanho && entrada.charAt(pos) != '"' && entrada.charAt(pos) != '\n'){
+                pos++;
+            }
+            if(pos < tamanho && entrada.charAt(pos) == '"') {
+                pos++;
+                String string = entrada.substring(start, pos);
+                return new Token(TipoToken.STRING, string, 0, 0);
+            }
+            return new Token(TipoToken.INVALIDO, "", 0, 0);
         }
 
         // Caractere desconhecido/inválido
@@ -87,11 +117,11 @@ public class AnalisadorLexico {
             }
 
             // Comentários: // ou /* ... */
-            if (ch == '/' && pos + 1 < tamanho) {
-                char next = entrada.charAt(pos + 1);
+            if (ch == '$' && pos + 1 < tamanho) {
+                char anterior = entrada.charAt(pos + 1);
 
                 // Comentário de linha única
-                if (next == '/') {
+                if (anterior != '<') {
                     pos += 2;
                     while (pos < tamanho && entrada.charAt(pos) != '\n') {
                         pos++;
@@ -100,7 +130,7 @@ public class AnalisadorLexico {
                 }
 
                 // Comentário de bloco
-                if (next == '*') {
+                if (anterior == '<') {
                     pos += 2;
                     while (pos + 1 < tamanho && !(entrada.charAt(pos) == '*' && entrada.charAt(pos + 1) == '/')) {
                         pos++;
@@ -114,7 +144,7 @@ public class AnalisadorLexico {
     }
     
     private boolean isPalavraReservada(String word) {
-        String[] keywords = {"int", "float", "char", "void", "if", "else", "while", "for", "return"};
+        String[] keywords = {"int", "string", "float", "char", "void", "if", "else", "while", "for", "return"};
         for (int i = 0; i < keywords.length; i++) {
             if (keywords[i].equals(word)) {
                 return true;

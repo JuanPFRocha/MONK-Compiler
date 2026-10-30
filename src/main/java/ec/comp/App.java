@@ -27,7 +27,12 @@ public class App {
         AnalisadorLexico lexico = new AnalisadorLexico(codigoC);
         Token token;
         token = lexico.nextToken();
+
         while (token.getTipoToken() != TipoToken.FIM) {
+            if (token.getTipoToken() == TipoToken.INVALIDO) {
+                System.out.println("\nCódigo inválido! Token inesperado: " + token);
+                return;
+            }
             System.out.println(token);
             token = lexico.nextToken();
         }

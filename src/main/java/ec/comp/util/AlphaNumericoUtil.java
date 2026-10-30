@@ -11,6 +11,10 @@ public class AlphaNumericoUtil {
         return c >= '0' && c <= '9';
     }
 
+    public static boolean isSymbol(char c) {
+        return (c == '_' || c == '.' || c == '*' || c == '&');
+    }
+
     public static boolean isAlphaNumerico(char c) {
         return isLetra(c) || isDigito(c);
     }

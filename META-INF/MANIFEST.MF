@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Created-By: Apache Maven 3.9.16
+Built-By: batat
+Build-Jdk: 25.0.2
+

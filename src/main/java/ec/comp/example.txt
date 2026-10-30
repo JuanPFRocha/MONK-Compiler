@@ -1,6 +1,9 @@
 int main() {
-    x = 10;
+<$ comentário $>
+    int *teste = 10.5 + 2;
+    string = "papel";
     if(x >= 8){
-        return x - 1;
+        x+= 5;
+        return x--;
     }
 }
