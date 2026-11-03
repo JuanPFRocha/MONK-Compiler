@@ -1,9 +1,81 @@
-int main() {
-<$ comentário $>
-    int *teste = 10.5 + 2;
-    string = "papel";
-    if(x >= 8){
-        x+= 5;
-        return x--;
+<$ ------ exemplo de código em MONK ------ $>
+
+const int MAX_ALUNOS 3
+const int QTD_NOTAS 3
+
+Struct Aluno {
+    int id;
+    string nome;
+    real notas[QTD_NOTAS];
+    real media;
+}
+
+$ 2. DECLARAÇÃO DE VARIÁVEL GLOBAL
+int g_totalOperacoes = 0;
+
+<$--------------------------------------------------------------------------------------------
+ 3. FUNÇÃO COM RETORNO 
+ 4. PASSAGEM DE PARÂMETROS POR VALOR (o inteiro 'qtd' e o vetor lido por valor de elementos)
+-------------------------------------------------------------------------------------------- $>
+ritual calcularMedia(const real notas[], int qtd) {
+    real soma = 0.0;
+    int i;
+    for(i = 0; i < qtd; i++){
+        soma += notas[i];
     }
+    g_totalOperacoes++;
+    return real (soma / qtd);
+}
+
+<$------------------------------------------------------------------------------
+ 6. FUNÇÃO SEM RETORNO (void) 
+ 7. PASSAGEM DE PARÂMETRO POR REFERÊNCIA (usando o ponteiro Aluno *alunoPtr)
+------------------------------------------------------------------------------ $>
+ritual atualizarMedia(Aluno *alunoPtr){
+    alunoPtr.media = calcularMedia(aluno.notas, QTD_NOTAS);
+    g_totalOperacoes++;
+}
+
+<$------------------------------------------------------------------------------
+ 6. FUNÇÃO SEM RETORNO (void) 
+ 7. PASSAGEM DE PARÂMETRO POR VALOR (uma cópia inteira da struct 'aluno' é enviada)
+------------------------------------------------------------------------------ $>
+ritual exibirAluno(Aluno aluno) {
+    int i;
+    speak("\nID" + aluno.id + " | Nome: " + aluno.nome);
+    speak("Notas: ");
+    for(i = 0; i < QTD_NOTAS; i++) {
+        speak(alunos.notas[i]{:.2});
+    }
+    speak("\nMedia: " + aluno.media{:.2} + "\n");
+    g_totalOperacoes++;
+}
+
+$------------------------------------------------------------------------------
+ritual main() {
+    int i;
+    
+    Aluno turma[MAX_ALUNOS] = {
+        {101, "Ana Silva", {8.5f, 7.0f, 9.0f}, 0.0f},
+        {102, "Bruno Costa", {6.0f, 5.5f, 7.0f}, 0.0f},
+        {103, "Carla Souza", {9.5f, 9.0f, 10.0f}, 0.0f}
+    };
+
+    speak("=== REGISTRO E PROCESSAMENTO DE ALUNOS ===\n");
+
+    $ Processa cada aluno enviando o endereço de memória (&turma[i]) -> Passagem por Referência
+    for(i = 0; i < MAX_ALUNOS; i++){
+        atualizarMedia(&turma[i]);
+    }
+
+    $ Exibe os dados enviando uma cópia do elemento (turma[i]) -> Passagem por Valor
+    for(i = 0; i < MAX_ALUNOS; i++){
+        exibirMedia(&turma[i]);
+    }
+
+    $ Exibição do valor final da variável global
+    speak("\n=======================================\n");
+    speak("Total de operações executadas no sistema (Global): " + g_totalOperacoes);
+
+    return int 0;
 }

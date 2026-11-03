@@ -2,7 +2,7 @@ package ec.comp.analisador;
 
 import ec.comp.model.TipoToken;
 import ec.comp.model.Token;
-import ec.comp.util.AlphaNumericoUtil;
+import ec.comp.util.*;
 
 public class AnalisadorLexico {
 
@@ -74,13 +74,13 @@ public class AnalisadorLexico {
 
 
         // Operadores simples (+, -, *, /)
-        if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+        if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ':' || ch == '.' || ch == '&') {
             pos++;
             return new Token(TipoToken.OPERADOR, String.valueOf(ch), 0, 0);
         }
 
         // Delimitadores e Pontuação
-        if (ch == '(' || ch == ')' || ch == '{' || ch == '}' || ch == ';' || ch == ',') {
+        if (ch == '(' || ch == ')' || ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == ';' || ch == ',') {
             pos++;
             return new Token(TipoToken.DELIMITADOR, String.valueOf(ch), 0, 0);
         }
@@ -105,7 +105,7 @@ public class AnalisadorLexico {
         return new Token(TipoToken.INVALIDO, String.valueOf(ch), 0, 0);
     }
 
-    // Elimina espaços, tabulações, quebras de linha e comentários em C
+    // Elimina espaços, tabulações, quebras de linha e comentários.
     private void eliminaEspacoComentario() {
         while (pos < tamanho) {
             char ch = entrada.charAt(pos);
@@ -116,35 +116,34 @@ public class AnalisadorLexico {
                 continue;
             }
 
-            // Comentários: // ou /* ... */
-            if (ch == '$' && pos + 1 < tamanho) {
-                char anterior = entrada.charAt(pos + 1);
-
-                // Comentário de linha única
-                if (anterior != '<') {
-                    pos += 2;
-                    while (pos < tamanho && entrada.charAt(pos) != '\n') {
-                        pos++;
-                    }
-                    continue;
+            // Comentário de bloco iniciando com '<$'
+            if (ch == '<' && pos + 1 < tamanho && entrada.charAt(pos + 1) == '$') {
+                pos += 2; // Pula '<$'
+                while (pos + 1 < tamanho && !(entrada.charAt(pos) == '$' && entrada.charAt(pos + 1) == '>')) {
+                    pos++;
                 }
-
-                // Comentário de bloco
-                if (anterior == '<') {
-                    pos += 2;
-                    while (pos + 1 < tamanho && !(entrada.charAt(pos) == '*' && entrada.charAt(pos + 1) == '/')) {
-                        pos++;
-                    }
-                    pos += 2; // Pula '*/'
-                    continue;
-                }
+                pos += 2; // Pula '$>'
+                continue;
             }
+
+            // Comentários: $ (linha única)
+            if (ch == '$' && pos + 1 < tamanho) {
+                pos += 1; // Pula '$'
+                while (pos < tamanho && entrada.charAt(pos) != '\n') {
+                    pos++;
+                }
+                continue;
+            }
+
             break;
         }
     }
     
     private boolean isPalavraReservada(String word) {
-        String[] keywords = {"int", "string", "float", "char", "void", "if", "else", "while", "for", "return"};
+        String[] keywords = {"int", "string", "real", "char", "void", "if", "else", "while", "do", "for", "return",
+                                "speak", "listen", "bool", "ritual", "Struct", "const", "switch", "bit", "byte", "NULL",
+                                "True", "False"
+                            };
         for (int i = 0; i < keywords.length; i++) {
             if (keywords[i].equals(word)) {
                 return true;

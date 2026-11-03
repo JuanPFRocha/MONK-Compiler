@@ -10,12 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class App {
-    public static void main( String[] args )  {
+    public static void main(String[] args) {
         String codigoC;
         String nomeArquivo = Teclado.lerString("Digite o nome do arquivo: ");
         String path = "src/main/java/ec/comp/" + nomeArquivo;
-
-
 
         try {
             codigoC = Files.readString(Path.of(path), StandardCharsets.UTF_8);
@@ -36,5 +34,7 @@ public class App {
             System.out.println(token);
             token = lexico.nextToken();
         }
+        
+        System.out.println("\nCódigo validado com sucesso!");
     }
 }

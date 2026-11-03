@@ -12,7 +12,7 @@ public class AlphaNumericoUtil {
     }
 
     public static boolean isSymbol(char c) {
-        return (c == '_' || c == '.' || c == '*' || c == '&');
+        return (c == '_');
     }
 
     public static boolean isAlphaNumerico(char c) {
