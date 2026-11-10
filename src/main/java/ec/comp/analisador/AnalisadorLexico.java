@@ -1,6 +1,7 @@
 package ec.comp.analisador;
 
 import ec.comp.model.TipoToken;
+import ec.comp.model.TipoPalavra;
 import ec.comp.model.Token;
 import ec.comp.util.*;
 
@@ -33,7 +34,7 @@ public class AnalisadorLexico {
                 pos++;
             }
             String lexeme = entrada.substring(start, pos);
-            if (this.isPalavraReservada(lexeme)) {
+            if (TipoPalavra.isPalavra(lexeme)) {
                 return new Token(TipoToken.PALAVRA_RESERVADA, lexeme, 0 , 0);
             }
 
@@ -137,19 +138,6 @@ public class AnalisadorLexico {
 
             break;
         }
-    }
-    
-    private boolean isPalavraReservada(String word) {
-        String[] keywords = {"int", "string", "real", "char", "void", "if", "else", "while", "do", "for", "return",
-                                "speak", "listen", "bool", "ritual", "Struct", "const", "switch", "bit", "byte", "NULL",
-                                "True", "False"
-                            };
-        for (int i = 0; i < keywords.length; i++) {
-            if (keywords[i].equals(word)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
