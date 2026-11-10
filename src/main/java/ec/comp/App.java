@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class App {
     public static void main(String[] args) {
@@ -25,6 +27,7 @@ public class App {
         AnalisadorLexico lexico = new AnalisadorLexico(codigoC);
         Token token;
         token = lexico.nextToken();
+        List<Token> tokens = new ArrayList<>();
 
         while (token.getTipoToken() != TipoToken.FIM) {
             if (token.getTipoToken() == TipoToken.INVALIDO) {
@@ -32,9 +35,12 @@ public class App {
                 return;
             }
             System.out.println(token);
+            tokens.add(token);
             token = lexico.nextToken();
         }
-        
-        System.out.println("\nCódigo validado com sucesso!");
+        tokens.add(token);
+        System.out.println("\nCódigo validado com sucesso pelo Analisador Léxico!");
+
+
     }
 }

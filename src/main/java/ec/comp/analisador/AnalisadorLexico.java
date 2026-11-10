@@ -73,9 +73,31 @@ public class AnalisadorLexico {
         }
 
 
+        // Operadores lógicos
+        if(ch == '&'){
+            int start = pos;
+            pos++;
+
+            if(pos < tamanho && entrada.charAt(pos) == '&'){
+                pos++;
+                return new Token(TipoToken.OPERADOR, entrada.substring(start, pos), 0, 0);
+            }
+            return new Token(TipoToken.OPERADOR, String.valueOf(ch), 0, 0);
+        }
+
+        if(ch == '|'){
+            int start = pos;
+            pos++;
+
+            if(pos < tamanho && entrada.charAt(pos) == '|'){
+                pos++;
+                return new Token(TipoToken.OPERADOR, entrada.substring(start, pos),0,0);
+            }
+            return new Token(TipoToken.INVALIDO, entrada.substring(start, pos + 1), 0, 0);
+        }
 
         // Operadores simples (+, -, *, /)
-        if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ':' || ch == '.' || ch == '&') {
+        if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ':' || ch == '.' || ch == '%') {
             pos++;
             return new Token(TipoToken.OPERADOR, String.valueOf(ch), 0, 0);
         }
