@@ -28,7 +28,7 @@ public class AnalisadorLexico {
         char ch = entrada.charAt(pos);
 
         // Identificadores e Palavras-chave ([a-zA-Z_][a-zA-Z0-9_]*)
-        if (AlphaNumericoUtil.isAlphaNumerico(ch) || ch == '_') {
+        if (AlphaNumericoUtil.isAlphaNumerico(ch) && !AlphaNumericoUtil.isDigito(ch) || ch == '_') {
             int start = pos;
             while (pos < tamanho && (AlphaNumericoUtil.isAlphaNumerico(entrada.charAt(pos)) || AlphaNumericoUtil.isSymbol(entrada.charAt(pos)))) {
                 pos++;
@@ -47,6 +47,15 @@ public class AnalisadorLexico {
             while (pos < tamanho && AlphaNumericoUtil.isDigito(entrada.charAt(pos))) {
                 pos++;
             }
+            if(pos + 1 < tamanho && entrada.charAt(pos) == '.' && AlphaNumericoUtil.isDigito(entrada.charAt(pos + 1))){
+                pos++;
+                while (pos < tamanho && AlphaNumericoUtil.isDigito(entrada.charAt(pos))) {
+                    pos++;
+                }
+            }
+
+
+
             return new Token(TipoToken.NUMERO, entrada.substring(start, pos), 0, 0);
         }
 
