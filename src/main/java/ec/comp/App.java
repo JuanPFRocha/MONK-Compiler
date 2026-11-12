@@ -1,6 +1,7 @@
 package ec.comp;
 
 import ec.comp.analisador.AnalisadorLexico;
+import ec.comp.analisador.AnalisadorSintatico;
 import ec.comp.model.TipoToken;
 import ec.comp.model.Token;
 import ec.comp.util.Teclado;
@@ -41,6 +42,12 @@ public class App {
         tokens.add(token);
         System.out.println("\nCódigo validado com sucesso pelo Analisador Léxico!");
 
+        AnalisadorSintatico parser = new AnalisadorSintatico(tokens);
+        try {
+            parser.parsePrograma();
+        } catch (RuntimeException e) {
+            System.err.println("\n" + e.getMessage());
+        }
 
     }
 }

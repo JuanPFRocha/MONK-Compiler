@@ -25,7 +25,8 @@ public enum TipoPalavra {
     BYTE("byte"),
     NULL("NULL"),
     TRUE("True"),
-    FALSE("False");
+    FALSE("False"),
+    INCLUDE("include");
 
 
     private String lexeme;
@@ -51,5 +52,15 @@ public enum TipoPalavra {
     // Verifica se faz parte do Enum
     public static boolean isPalavra(String p){
         return PALAVRA_CHAVE.containsKey(p);
+    }
+
+    public static boolean isTipo(String texto) {
+        return texto.equals(INT.getLexeme())
+                || texto.equals(REAL.getLexeme())
+                || texto.equals(STRING.getLexeme())
+                || texto.equals(CHAR.getLexeme())
+                || texto.equals(BOOL.getLexeme())
+                || texto.equals(BIT.getLexeme())
+                || texto.equals(BYTE.getLexeme());
     }
 }
