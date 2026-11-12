@@ -1,9 +1,7 @@
-# Analisador Léxico da Linguagem MONK
+# Compilador da Linguagem MONK
 
-Este projeto contém o analisador léxico da linguagem MONK, 
-desenvolvido em Java. Ele lê um arquivo de código-fonte e identifica
-os tokens da linguagem (palavras reservadas, identificadores, 
-operadores, delimitadores, literais, comentários e etc.).
+Este projeto contém o compilador da linguagem MONK, 
+desenvolvido em Java.
 
 ## Requisitos
 
