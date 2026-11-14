@@ -22,6 +22,13 @@ public class AnalisadorSintatico {
         return tokens.get(pos);
     }
 
+    private Token tokenAdiante(){
+        if(pos + 1 >= tokens.size()){
+            return tokens.get(tokens.size() - 1);
+        }
+        return tokens.get(pos+1);
+    }
+
     private Token consumirPorTipo(TipoToken tipoEsperado){
         Token token = tokenAtual();
         if(token.getTipoToken() == tipoEsperado){
@@ -170,6 +177,92 @@ public class AnalisadorSintatico {
         }
 
         else{imprimirErro();}
+    }
+
+    private boolean verificaDeclaracao(){
+        return (verificaStruct() || verificaDeclaracaoVar());
+    }
+
+    public void parseDeclaracao(){
+        if(verificaStruct()){
+            parseStruct();
+        }
+        else if(verificaDeclaracaoVar()){
+            parseDeclaracaoVar();
+        }
+        else {imprimirErro();}
+    }
+    private boolean verificaStruct(){
+        return(verificaPalavra(TipoPalavra.STRUCT.getLexeme()));
+    }
+
+    public void parseStruct(){
+        consumirPalavra(TipoPalavra.STRUCT.getLexeme());
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        consumirSimbolo("{");
+        while(verificaCampo()){
+            parseCampo();
+        }
+        consumirSimbolo("}");
+    }
+
+    private boolean verificaCampo(){
+        return (TipoPalavra.isTipo(tokenAtual().getToken()) && (tokenAdiante().getToken().equals("*") || tokenAdiante().getTipoToken() == TipoToken.IDENTIFICADOR));
+    }
+
+    public void parseCampo(){
+        consumirTipo();
+        if(tokenAtual().getToken().equals("*")){
+            consumirSimbolo("*");
+        }
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        while(verificaDimensao()){
+            parseDimensao();
+        }
+        consumirSimbolo(";");
+    }
+
+    private boolean verificaDimensao(){
+        return (tokenAtual().getToken().equals("["));
+    }
+
+    public void parseDimensao(){
+        consumirSimbolo("[");
+        if(verificaExpressao()){
+            parseExpressao();
+        }
+        consumirSimbolo("]");
+    }
+
+    private boolean verificaExpressao(){
+        return verificaTermoE();
+    }
+
+    public void parseExpressao(){
+            parseTermoE();
+            while(tokenAtual().getToken().equals("||")){
+                consumirPorTipo(TipoToken.OPERADOR);
+                parseTermoE();
+            }
+    }
+    private boolean verificaTermoE(){
+        return verificaComparacao();
+    }
+
+    public void parseTermoE(){
+        parseComparacao();
+        while(tokenAtual().getToken().equals("&&")){
+            consumirPorTipo(TipoToken.OPERADOR);
+            parseComparacao();
+        }
+    }
+
+    private boolean verificaComparacao(){
+        return (verificaSoma());
+    }
+
+    public void parseComparacao(){
+
     }
 
 }
