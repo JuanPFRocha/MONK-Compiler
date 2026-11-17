@@ -140,6 +140,7 @@ public class AnalisadorSintatico {
         consumirPalavra(TipoPalavra.CONST.getLexeme());
         consumirTipo();
         consumirPorTipo(TipoToken.IDENTIFICADOR);
+        consumirSimbolo("=");
         parseLiteral();
         consumirSimbolo(";");
 
@@ -292,13 +293,10 @@ public class AnalisadorSintatico {
     }
 
     private boolean verificaUnario() {
-        if (tokenAtual().getToken().equals("!")
+        return (   tokenAtual().getToken().equals("!")
                 || tokenAtual().getToken().equals("-")
                 || tokenAtual().getToken().equals("&")
-                || tokenAtual().getToken().equals("*")){
-                    return true;
-                }
-        return false;
+                || tokenAtual().getToken().equals("*") || verificaFator());
     }
 
     public void parseUnario(){
@@ -316,6 +314,16 @@ public class AnalisadorSintatico {
         parseFator();
     }
 
+    private boolean verificaFator() {
+        return verificaTipo(TipoToken.NUMERO)
+                || verificaTipo(TipoToken.STRING)
+                || verificaPalavra(TipoPalavra.TRUE.getLexeme())
+                || verificaPalavra(TipoPalavra.FALSE.getLexeme())
+                || verificaPalavra(TipoPalavra.NULL.getLexeme())
+                || verificaTipo(TipoToken.IDENTIFICADOR)
+                || tokenAtual().getToken().equals("(");
+    }
+
     public void parseFator() {
         if (verificaTipo(TipoToken.NUMERO)) {
             consumirPorTipo(TipoToken.NUMERO);
@@ -331,7 +339,7 @@ public class AnalisadorSintatico {
             parseChamada();
         } else if (verificaTipo(TipoToken.IDENTIFICADOR)) {
             consumirPorTipo(TipoToken.IDENTIFICADOR);
-        } else if (verificaExpressao()) {
+        } else if (tokenAtual().getToken().equals("(")) {
             consumirSimbolo("(");
             parseExpressao();
             consumirSimbolo(")");
@@ -351,11 +359,11 @@ public class AnalisadorSintatico {
     }
 
     public void parseChamada(){
-        consumirPorTipo(TipoToken.OPERADOR);
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
         consumirSimbolo("(");
         if(verificaExpressao()){
             parseExpressao();
-            while(tokenAtual().getToken().equals(".")){
+            while(tokenAtual().getToken().equals(",")){
                 consumirSimbolo(",");
                 parseExpressao();
             }
@@ -416,7 +424,10 @@ public class AnalisadorSintatico {
         consumirSimbolo(";");
     }
 
-    private boolean verificaInicializador(){return verificaExpressao();}
+    private boolean verificaInicializador(){
+        return verificaExpressao() || tokenAtual().getToken().equals("{");
+
+    }
 
     public void parseInicializador(){
         if(verificaExpressao()){
@@ -430,6 +441,9 @@ public class AnalisadorSintatico {
                 parseInicializador();
             }
             consumirSimbolo("}");
+        }
+        else {
+            imprimirErro();
         }
     }
 }
