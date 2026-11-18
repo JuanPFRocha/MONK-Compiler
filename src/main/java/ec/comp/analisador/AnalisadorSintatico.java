@@ -3,8 +3,6 @@ package ec.comp.analisador;
 import ec.comp.model.TipoPalavra;
 import ec.comp.model.TipoToken;
 import ec.comp.model.Token;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class AnalisadorSintatico {
@@ -27,6 +25,10 @@ public class AnalisadorSintatico {
             return tokens.get(tokens.size() - 1);
         }
         return tokens.get(pos + 1);
+    }
+
+    private Token tokenDepois() {
+        return tokens.get(Math.min(pos + 2, tokens.size() - 1));
     }
 
     private Token consumirPorTipo(TipoToken tipoEsperado) {
@@ -68,22 +70,35 @@ public class AnalisadorSintatico {
 
     private Token consumirTipo() {
         Token token = tokenAtual();
-        if (token.getTipoToken() == TipoToken.PALAVRA_RESERVADA && TipoPalavra.isTipo(token.getToken())) {
+        if (ehTipo()) {
             pos++;
             return token;
         }
         throw new RuntimeException(String.format(
                 "Erro Sintático [Linha " + token.getLinha() + ", Coluna " + token.getColuna() +
-                        "]: Token esperado: int || real..."
+                        "]: Token esperado: struct criada || int || real..."
         ));
     }
 
     private boolean verificaTipo(TipoToken tipo) {
         return tokenAtual().getTipoToken() == tipo;
     }
+    private boolean verificaTipoStruct() {
+        if (!verificaTipo(TipoToken.IDENTIFICADOR)) return false;
+        Token prox = tokenAdiante();
+        return prox.getTipoToken() == TipoToken.IDENTIFICADOR
+                || (prox.getToken().equals("*")
+                && tokenDepois().getTipoToken() == TipoToken.IDENTIFICADOR);
+    }
 
     private boolean verificaPalavra(String p) {
         return TipoPalavra.isPalavra(tokenAtual().getToken()) && tokenAtual().getToken().equals(p);
+    }
+
+    private boolean ehTipo() {
+        return (verificaTipo(TipoToken.PALAVRA_RESERVADA)
+                && TipoPalavra.isTipo(tokenAtual().getToken()))
+                || verificaTipoStruct();
     }
 
     private void imprimirErro() {
@@ -146,16 +161,8 @@ public class AnalisadorSintatico {
 
     }
 
-    private boolean verificaLiteral() {
-        return (verificaTipo(TipoToken.OPERADOR) && tokenAtual().getToken().equals("-")
-                || verificaTipo(TipoToken.NUMERO) || verificaTipo(TipoToken.STRING)
-                || verificaPalavra(TipoPalavra.TRUE.getLexeme())
-                || verificaPalavra(TipoPalavra.FALSE.getLexeme())
-                || verificaPalavra(TipoPalavra.NULL.getLexeme()));
-    }
 
     public void parseLiteral() {
-        Token token = tokenAtual();
 
         if (verificaTipo(TipoToken.OPERADOR) && tokenAtual().getToken().equals("-")) {
             consumirPorTipo(TipoToken.OPERADOR);
@@ -204,7 +211,7 @@ public class AnalisadorSintatico {
     }
 
     private boolean verificaCampo() {
-        return (TipoPalavra.isTipo(tokenAtual().getToken()) && (tokenAdiante().getToken().equals("*") || tokenAdiante().getTipoToken() == TipoToken.IDENTIFICADOR));
+        return (ehTipo() && (tokenAdiante().getToken().equals("*") || tokenAdiante().getTipoToken() == TipoToken.IDENTIFICADOR));
     }
 
     public void parseCampo() {
@@ -371,7 +378,11 @@ public class AnalisadorSintatico {
         consumirSimbolo(")");
     }
 
-    private boolean verificaSufixo(){return tokenAtual().getToken().equals("[") || tokenAtual().getToken().equals(".");}
+    private boolean verificaSufixo() {
+        return tokenAtual().getToken().equals("[")
+                || (tokenAtual().getToken().equals(".")
+                && tokenAdiante().getTipoToken() == TipoToken.IDENTIFICADOR);
+    }
 
     public void parseSufixo(){
         if(tokenAtual().getToken().equals("[")){
@@ -401,7 +412,7 @@ public class AnalisadorSintatico {
     }
 
     private boolean verificaDeclaracaoVar(){
-        return TipoPalavra.isTipo(tokenAtual().getToken());
+        return ehTipo();
     }
     public void parseDeclaracaoVar(){
         consumirTipo();
@@ -448,7 +459,7 @@ public class AnalisadorSintatico {
     }
 
     private boolean verificaRitual(){
-        return TipoPalavra.isPalavra(tokenAtual().getToken());
+        return verificaPalavra(TipoPalavra.RITUAL.getLexeme());
     }
 
     public void parseRitual(){
@@ -459,7 +470,7 @@ public class AnalisadorSintatico {
             parseListaParam();
         }
         consumirSimbolo(")");
-        parseBlocoComando();
+        parseBlocoCodigo();
     }
 
     private boolean verificaListaParam(){return verificaParam();}
@@ -473,7 +484,7 @@ public class AnalisadorSintatico {
     }
 
     private boolean verificaParam(){
-        return (verificaPalavra(TipoPalavra.CONST.getLexeme()) || TipoPalavra.isTipo(tokenAtual().getToken()));
+        return (verificaPalavra(TipoPalavra.CONST.getLexeme()) || ehTipo());
     }
 
     public void parseParam(){
@@ -491,19 +502,10 @@ public class AnalisadorSintatico {
         }
     }
 
-    public void parseBlocoComando(){
-        consumirSimbolo("{");
-        while(verificaComando()){
-            parseComando();
-        }
-        consumirSimbolo("}");
-    }
-
     private boolean verificaComando(){
         return (
                    verificaDeclaracaoVar()
-                || verificaAtribuicao()
-                || verificaIncremento()
+                || verificaAlvo()
                 || verificaChamada()
                 || verificaSpeak()
                 || verificaListen()
@@ -520,20 +522,21 @@ public class AnalisadorSintatico {
         if(verificaDeclaracaoVar()){
             parseDeclaracaoVar();
         }
-        else if(verificaAtribuicao()){
-            parseAtribuicao();
-        }
-        else if(verificaIncremento()){
-            parseIncremento();
-        }
         else if(verificaChamada()){
             parseChamada();
+            consumirSimbolo(";");
+        }
+        else if (verificaAlvo()) {
+            parseAtribuicaoOuIncremento();
+            consumirSimbolo(";");
         }
         else if(verificaSpeak()){
             parseSpeak();
+            consumirSimbolo(";");
         }
         else if(verificaListen()){
             parseListen();
+            consumirSimbolo(";");
         }
         else if(verificaReturn()){
             parseReturn();
@@ -558,12 +561,14 @@ public class AnalisadorSintatico {
         }
     }
 
-    private boolean verificaAtribuicao() {return verificaAlvo();}
-
-    public void parseAtribuicao(){
+    public void parseAtribuicaoOuIncremento() {
         parseAlvo();
-        parseOpAtrib();
-        parseExpressao();
+        if (tokenAtual().getToken().equals("++") || tokenAtual().getToken().equals("--")) {
+            consumirPorTipo(TipoToken.OPERADOR);
+        } else {
+            parseOpAtrib();
+            parseExpressao();
+        }
     }
 
     private boolean verificaAlvo(){
@@ -602,19 +607,8 @@ public class AnalisadorSintatico {
         }
     }
 
-    private boolean verificaIncremento(){return verificaAlvo();}
 
-    public void parseIncremento(){
-        parseAlvo();
-        if(tokenAtual().getToken().equals("++") || tokenAtual().getToken().equals("--")){
-            consumirPorTipo(TipoToken.OPERADOR);
-        }
-        else {
-            imprimirErro();
-        }
-    }
-
-    private boolean verificaSpeak(){return TipoPalavra.isPalavra(TipoPalavra.SPEAK.getLexeme());}
+    private boolean verificaSpeak(){return verificaPalavra(TipoPalavra.SPEAK.getLexeme());}
 
     public void parseSpeak(){
         consumirPalavra(TipoPalavra.SPEAK.getLexeme());
@@ -626,15 +620,19 @@ public class AnalisadorSintatico {
         consumirSimbolo(")");
     }
 
-    private boolean verificaFormato(){return tokenAtual().getToken().equals(".");}
-
-    public void parseFormato(){
-        consumirSimbolo(".");
-        consumirPorTipo(TipoToken.NUMERO);
-        consumirSimbolo("f");
+    private boolean verificaFormato() {
+        return tokenAtual().getToken().equals("{");
     }
 
-    private boolean verificaListen() {return TipoPalavra.isPalavra(TipoPalavra.LISTEN.getLexeme());}
+    public void parseFormato() {
+        consumirSimbolo("{");
+        consumirSimbolo(":");
+        consumirSimbolo(".");
+        consumirPorTipo(TipoToken.NUMERO);
+        consumirSimbolo("}");
+    }
+
+    private boolean verificaListen() {return verificaPalavra(TipoPalavra.LISTEN.getLexeme());}
 
     public void parseListen(){
         consumirPalavra(TipoPalavra.LISTEN.getLexeme());
@@ -643,7 +641,7 @@ public class AnalisadorSintatico {
         consumirSimbolo(")");
     }
 
-    private boolean verificaReturn(){return TipoPalavra.isPalavra(TipoPalavra.RETURN.getLexeme());}
+    private boolean verificaReturn(){return verificaPalavra(TipoPalavra.RETURN.getLexeme());}
 
     public void parseReturn(){
         consumirPalavra(TipoPalavra.RETURN.getLexeme());
@@ -653,7 +651,7 @@ public class AnalisadorSintatico {
         consumirSimbolo(";");
     }
 
-    private boolean verificaFor(){return TipoPalavra.isPalavra(TipoPalavra.FOR.getLexeme());}
+    private boolean verificaFor(){return verificaPalavra(TipoPalavra.FOR.getLexeme());}
 
     public void parseFor(){
         consumirPalavra(TipoPalavra.FOR.getLexeme());
@@ -666,11 +664,8 @@ public class AnalisadorSintatico {
             parseExpressao();
         }
         consumirSimbolo(";");
-        if(verificaAtribuicao()) {
-            parseAtribuicao();
-        }
-        else if(verificaIncremento()){
-            parseIncremento();
+        if(verificaAlvo()) {
+            parseAtribuicaoOuIncremento();
         }
         consumirSimbolo(")");
         parseBlocoOuComando();
@@ -698,27 +693,23 @@ public class AnalisadorSintatico {
         consumirSimbolo("}");
     }
 
-    private boolean verificaInitFor(){
-        return TipoPalavra.isTipo(tokenAtual().getToken());
+    private boolean verificaInitFor() {
+        return verificaDeclaracaoVar() || verificaAlvo();
     }
-    public void parseInitFor(){
-        consumirTipo();
-        if(tokenAtual().getToken().equals("*")){
-            consumirSimbolo("*");
-        }
-        consumirPorTipo(TipoToken.IDENTIFICADOR);
-        consumirSimbolo("=");
-        if(verificaExpressao()){
+    public void parseInitFor() {
+        if (verificaDeclaracaoVar()) {
+            consumirTipo();
+            if (tokenAtual().getToken().equals("*")) consumirSimbolo("*");
+            consumirPorTipo(TipoToken.IDENTIFICADOR);
+            consumirSimbolo("=");
+            parseExpressao();
+        } else {
+            parseAlvo();
+            parseOpAtrib();
             parseExpressao();
         }
-        else if(verificaAtribuicao()){
-            parseAtribuicao();
-        }
-        else {
-            imprimirErro();
-        }
     }
-    private boolean verificaWhile(){return TipoPalavra.isPalavra(TipoPalavra.WHILE.getLexeme());}
+    private boolean verificaWhile(){return verificaPalavra(TipoPalavra.WHILE.getLexeme());}
 
     public void parseWhile(){
         consumirPalavra(TipoPalavra.WHILE.getLexeme());
@@ -728,7 +719,7 @@ public class AnalisadorSintatico {
         parseBlocoOuComando();
     }
 
-    private boolean verificaDoWhile(){return TipoPalavra.isPalavra(TipoPalavra.DO.getLexeme());}
+    private boolean verificaDoWhile(){return verificaPalavra(TipoPalavra.DO.getLexeme());}
 
     public void parseDoWhile(){
         consumirPalavra(TipoPalavra.DO.getLexeme());
@@ -739,7 +730,7 @@ public class AnalisadorSintatico {
         consumirSimbolo(")");
         consumirSimbolo(";");
     }
-    private boolean verificaIf(){return TipoPalavra.isPalavra(TipoPalavra.IF.getLexeme());}
+    private boolean verificaIf(){return verificaPalavra(TipoPalavra.IF.getLexeme());}
 
     public void parseIf(){
         consumirPalavra(TipoPalavra.IF.getLexeme());
@@ -747,12 +738,12 @@ public class AnalisadorSintatico {
         parseExpressao();
         consumirSimbolo(")");
         parseBlocoOuComando();
-        if(TipoPalavra.isPalavra(TipoPalavra.ELSE.getLexeme())){
+        if(verificaPalavra(TipoPalavra.ELSE.getLexeme())){
             consumirPalavra(TipoPalavra.ELSE.getLexeme());
             parseBlocoOuComando();
         }
     }
-    private boolean verificaSwitch(){return TipoPalavra.isPalavra(TipoPalavra.SWITCH.getLexeme());}
+    private boolean verificaSwitch(){return verificaPalavra(TipoPalavra.SWITCH.getLexeme());}
 
     public void parseSwitch(){
         consumirPalavra(TipoPalavra.SWITCH.getLexeme());
@@ -761,14 +752,14 @@ public class AnalisadorSintatico {
         consumirSimbolo(")");
         consumirSimbolo("{");
 
-        while(TipoPalavra.isPalavra(TipoPalavra.CASE.getLexeme())){
+        while(verificaPalavra(TipoPalavra.CASE.getLexeme())){
             consumirPalavra(TipoPalavra.CASE.getLexeme());
             consumirSimbolo("(");
             parseLiteral();
             consumirSimbolo(")");
             parseBlocoCodigo();
         }
-        if(TipoPalavra.isPalavra(TipoPalavra.DEFAULT.getLexeme())){
+        if(verificaPalavra(TipoPalavra.DEFAULT.getLexeme())){
             consumirPalavra(TipoPalavra.DEFAULT.getLexeme());
             parseBlocoCodigo();
         }
