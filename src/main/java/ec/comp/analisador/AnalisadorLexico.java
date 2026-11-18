@@ -17,8 +17,28 @@ public class AnalisadorLexico {
         this.pos = 0;
     }
 
-    // Retorna o próximo token do código-fonte
+    private int linhaAtual = 1;
+    private int colunaAtual = 1;
+    private int posContada = 0;
+
+    private void avancarContagem(int ate) {
+        while (posContada < ate && posContada < tamanho) {
+            if (entrada.charAt(posContada) == '\n') { linhaAtual++; colunaAtual = 1; }
+            else { colunaAtual++; }
+            posContada++;
+        }
+    }
+
     public Token nextToken() {
+        eliminaEspacoComentario();
+        avancarContagem(pos);                    // posição do início do token
+        int linha = linhaAtual, coluna = colunaAtual;
+        Token t = lerToken();
+        return new Token(t.getTipoToken(), t.getToken(), linha, coluna);
+    }
+
+
+    public Token lerToken() {
         this.eliminaEspacoComentario();
 
         if (pos >= tamanho) {
