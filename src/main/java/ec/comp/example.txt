@@ -1,7 +1,7 @@
 <$ ------ exemplo de código em MONK ------ $>
 
-const int MAX_ALUNOS 3
-const int QTD_NOTAS 3
+const int MAX_ALUNOS = 3;
+const int QTD_NOTAS = 3;
 
 Struct Aluno {
     int id;
@@ -56,9 +56,9 @@ ritual main() {
     int i;
     
     Aluno turma[MAX_ALUNOS] = {
-        {101, "Ana Silva", {8.5f, 7.0f, 9.0f}, 0.0f},
-        {102, "Bruno Costa", {6.0f, 5.5f, 7.0f}, 0.0f},
-        {103, "Carla Souza", {9.5f, 9.0f, 10.0f}, 0.0f}
+        {101, "Ana Silva", {8.5, 7.0, 9.0}, 0.0},
+        {102, "Bruno Costa", {6.0, 5.5, 7.0}, 0.0},
+        {103, "Carla Souza", {9.5, 9.0, 10.0}, 0.0}
     };
 
     speak("=== REGISTRO E PROCESSAMENTO DE ALUNOS ===\n");

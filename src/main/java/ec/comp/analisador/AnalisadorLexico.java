@@ -31,7 +31,7 @@ public class AnalisadorLexico {
 
     public Token nextToken() {
         eliminaEspacoComentario();
-        avancarContagem(pos);                    // posição do início do token
+        avancarContagem(pos);
         int linha = linhaAtual, coluna = colunaAtual;
         Token t = lerToken();
         return new Token(t.getTipoToken(), t.getToken(), linha, coluna);

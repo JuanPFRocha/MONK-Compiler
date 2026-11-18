@@ -48,6 +48,7 @@ public class App {
         } catch (RuntimeException e) {
             System.err.println("\n" + e.getMessage());
         }
+        System.out.println("\nCódigo validado com sucesso pelo analisador Sintático!");
 
     }
 }

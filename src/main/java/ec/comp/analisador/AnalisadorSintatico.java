@@ -79,6 +79,13 @@ public class AnalisadorSintatico {
                         "]: Token esperado: struct criada || int || real..."
         ));
     }
+    private void consumirTipoRetorno() {
+        if (verificaTipoRetorno()) {
+            pos++;
+            return;
+        }
+        imprimirErro();
+    }
 
     private boolean verificaTipo(TipoToken tipo) {
         return tokenAtual().getTipoToken() == tipo;
@@ -359,6 +366,9 @@ public class AnalisadorSintatico {
         while (verificaSufixo()) {
             parseSufixo();
         }
+        if(inSpeak && verificaFormato()){
+            parseFormato();
+        }
     }
 
     private boolean verificaChamada(){
@@ -610,13 +620,13 @@ public class AnalisadorSintatico {
 
     private boolean verificaSpeak(){return verificaPalavra(TipoPalavra.SPEAK.getLexeme());}
 
+    private boolean inSpeak = false;
     public void parseSpeak(){
         consumirPalavra(TipoPalavra.SPEAK.getLexeme());
         consumirSimbolo("(");
+        inSpeak = true;
         parseExpressao();
-        if(verificaFormato()){
-            parseFormato();
-        }
+        inSpeak = false;
         consumirSimbolo(")");
     }
 
@@ -643,13 +653,20 @@ public class AnalisadorSintatico {
 
     private boolean verificaReturn(){return verificaPalavra(TipoPalavra.RETURN.getLexeme());}
 
-    public void parseReturn(){
+    public void parseReturn() {
         consumirPalavra(TipoPalavra.RETURN.getLexeme());
-        if(verificaExpressao()){
+        if (verificaTipoRetorno()) {
+            consumirTipoRetorno();
             parseExpressao();
         }
         consumirSimbolo(";");
     }
+    private boolean verificaTipoRetorno() {
+        return verificaTipo(TipoToken.PALAVRA_RESERVADA)
+                && TipoPalavra.isTipo(tokenAtual().getToken());
+    }
+
+
 
     private boolean verificaFor(){return verificaPalavra(TipoPalavra.FOR.getLexeme());}
 
