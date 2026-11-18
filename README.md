@@ -54,6 +54,7 @@ O analisador irá ler o arquivo e exibir os tokens encontrados.
 ## Observações
 
 - O arquivo `example.txt` deve estar na pasta em que o comando foi executado (ou informe o caminho completo até ele).
+- O arquivo `example.txt` existe no diretório do projeto, logo, é possível testar o compilador.
 - Para analisar outro programa, basta informar o nome de outro arquivo no passo 4.
 - Caso apareça o erro `'java' não é reconhecido como um comando interno ou externo`, o Java não está instalado ou não foi adicionado ao `PATH`.
 - Caso apareça o erro `Unable to access jarfile`, confirme que o projeto foi compilado e que o arquivo `lexico-1.0-SNAPSHOT.jar` existe dentro da pasta `target`.
