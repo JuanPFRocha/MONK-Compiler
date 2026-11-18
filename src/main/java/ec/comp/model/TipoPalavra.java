@@ -26,7 +26,9 @@ public enum TipoPalavra {
     NULL("NULL"),
     TRUE("True"),
     FALSE("False"),
-    INCLUDE("include");
+    INCLUDE("include"),
+    CASE("case"),
+    DEFAULT("default");
 
 
     private String lexeme;

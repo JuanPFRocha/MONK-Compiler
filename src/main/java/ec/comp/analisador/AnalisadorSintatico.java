@@ -446,5 +446,334 @@ public class AnalisadorSintatico {
             imprimirErro();
         }
     }
+
+    private boolean verificaRitual(){
+        return TipoPalavra.isPalavra(tokenAtual().getToken());
+    }
+
+    public void parseRitual(){
+        consumirPalavra(TipoPalavra.RITUAL.getLexeme());
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        consumirSimbolo("(");
+        if(verificaListaParam()){
+            parseListaParam();
+        }
+        consumirSimbolo(")");
+        parseBlocoComando();
+    }
+
+    private boolean verificaListaParam(){return verificaParam();}
+
+    public void parseListaParam(){
+        parseParam();
+        while(tokenAtual().getToken().equals(",")){
+            consumirSimbolo(",");
+            parseParam();
+        }
+    }
+
+    private boolean verificaParam(){
+        return (verificaPalavra(TipoPalavra.CONST.getLexeme()) || TipoPalavra.isTipo(tokenAtual().getToken()));
+    }
+
+    public void parseParam(){
+        if(verificaPalavra(TipoPalavra.CONST.getLexeme())){
+            consumirPalavra(TipoPalavra.CONST.getLexeme());
+        }
+        consumirTipo();
+        if(tokenAtual().getToken().equals("*")){
+            consumirPorTipo(TipoToken.OPERADOR);
+        }
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        if(tokenAtual().getToken().equals("[")){
+            consumirSimbolo("[");
+            consumirSimbolo("]");
+        }
+    }
+
+    public void parseBlocoComando(){
+        consumirSimbolo("{");
+        while(verificaComando()){
+            parseComando();
+        }
+        consumirSimbolo("}");
+    }
+
+    private boolean verificaComando(){
+        return (
+                   verificaDeclaracaoVar()
+                || verificaAtribuicao()
+                || verificaIncremento()
+                || verificaChamada()
+                || verificaSpeak()
+                || verificaListen()
+                || verificaReturn()
+                || verificaFor()
+                || verificaWhile()
+                || verificaDoWhile()
+                || verificaIf()
+                || verificaSwitch()
+                );
+    }
+
+    public void parseComando(){
+        if(verificaDeclaracaoVar()){
+            parseDeclaracaoVar();
+        }
+        else if(verificaAtribuicao()){
+            parseAtribuicao();
+        }
+        else if(verificaIncremento()){
+            parseIncremento();
+        }
+        else if(verificaChamada()){
+            parseChamada();
+        }
+        else if(verificaSpeak()){
+            parseSpeak();
+        }
+        else if(verificaListen()){
+            parseListen();
+        }
+        else if(verificaReturn()){
+            parseReturn();
+        }
+        else if(verificaFor()){
+            parseFor();
+        }
+        else if(verificaWhile()){
+            parseWhile();
+        }
+        else if(verificaDoWhile()){
+            parseDoWhile();
+        }
+        else if(verificaIf()){
+            parseIf();
+        }
+        else if(verificaSwitch()){
+            parseSwitch();
+        }
+        else {
+            imprimirErro();
+        }
+    }
+
+    private boolean verificaAtribuicao() {return verificaAlvo();}
+
+    public void parseAtribuicao(){
+        parseAlvo();
+        parseOpAtrib();
+        parseExpressao();
+    }
+
+    private boolean verificaAlvo(){
+        return (tokenAtual().getToken().equals("*") || verificaAcesso());
+    }
+
+    public void parseAlvo(){
+        while(tokenAtual().getToken().equals("*")){
+            consumirSimbolo("*");
+        }
+        parseAcesso();
+    }
+
+    private boolean verificaAcesso(){
+        return verificaTipo(TipoToken.IDENTIFICADOR);
+    }
+
+    public void parseAcesso(){
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        while(verificaSufixo()){
+            parseSufixo();
+        }
+    }
+
+    public void parseOpAtrib(){
+        if(tokenAtual().getToken().equals("=")
+            || tokenAtual().getToken().equals("+=")
+            || tokenAtual().getToken().equals("-=")
+            || tokenAtual().getToken().equals("*=")
+            || tokenAtual().getToken().equals("/=")
+        ){
+            consumirPorTipo(TipoToken.OPERADOR);
+        }
+        else {
+            imprimirErro();
+        }
+    }
+
+    private boolean verificaIncremento(){return verificaAlvo();}
+
+    public void parseIncremento(){
+        parseAlvo();
+        if(tokenAtual().getToken().equals("++") || tokenAtual().getToken().equals("--")){
+            consumirPorTipo(TipoToken.OPERADOR);
+        }
+        else {
+            imprimirErro();
+        }
+    }
+
+    private boolean verificaSpeak(){return TipoPalavra.isPalavra(TipoPalavra.SPEAK.getLexeme());}
+
+    public void parseSpeak(){
+        consumirPalavra(TipoPalavra.SPEAK.getLexeme());
+        consumirSimbolo("(");
+        parseExpressao();
+        if(verificaFormato()){
+            parseFormato();
+        }
+        consumirSimbolo(")");
+    }
+
+    private boolean verificaFormato(){return tokenAtual().getToken().equals(".");}
+
+    public void parseFormato(){
+        consumirSimbolo(".");
+        consumirPorTipo(TipoToken.NUMERO);
+        consumirSimbolo("f");
+    }
+
+    private boolean verificaListen() {return TipoPalavra.isPalavra(TipoPalavra.LISTEN.getLexeme());}
+
+    public void parseListen(){
+        consumirPalavra(TipoPalavra.LISTEN.getLexeme());
+        consumirSimbolo("(");
+        parseAlvo();
+        consumirSimbolo(")");
+    }
+
+    private boolean verificaReturn(){return TipoPalavra.isPalavra(TipoPalavra.RETURN.getLexeme());}
+
+    public void parseReturn(){
+        consumirPalavra(TipoPalavra.RETURN.getLexeme());
+        if(verificaExpressao()){
+            parseExpressao();
+        }
+        consumirSimbolo(";");
+    }
+
+    private boolean verificaFor(){return TipoPalavra.isPalavra(TipoPalavra.FOR.getLexeme());}
+
+    public void parseFor(){
+        consumirPalavra(TipoPalavra.FOR.getLexeme());
+        consumirSimbolo("(");
+        if(verificaInitFor()){
+            parseInitFor();
+        }
+        consumirSimbolo(";");
+        if(verificaExpressao()){
+            parseExpressao();
+        }
+        consumirSimbolo(";");
+        if(verificaAtribuicao()) {
+            parseAtribuicao();
+        }
+        else if(verificaIncremento()){
+            parseIncremento();
+        }
+        consumirSimbolo(")");
+        parseBlocoOuComando();
+    }
+
+    public void parseBlocoOuComando(){
+        if(verificaComando()){
+            parseComando();
+        }
+        else if(verificaBlocoCodigo()){
+            parseBlocoCodigo();
+        }
+        else {
+            imprimirErro();
+        }
+    }
+
+    private boolean verificaBlocoCodigo(){return tokenAtual().getToken().equals("{");}
+
+    public void parseBlocoCodigo(){
+        consumirSimbolo("{");
+        while(verificaComando()){
+            parseComando();
+        }
+        consumirSimbolo("}");
+    }
+
+    private boolean verificaInitFor(){
+        return TipoPalavra.isTipo(tokenAtual().getToken());
+    }
+    public void parseInitFor(){
+        consumirTipo();
+        if(tokenAtual().getToken().equals("*")){
+            consumirSimbolo("*");
+        }
+        consumirPorTipo(TipoToken.IDENTIFICADOR);
+        consumirSimbolo("=");
+        if(verificaExpressao()){
+            parseExpressao();
+        }
+        else if(verificaAtribuicao()){
+            parseAtribuicao();
+        }
+        else {
+            imprimirErro();
+        }
+    }
+    private boolean verificaWhile(){return TipoPalavra.isPalavra(TipoPalavra.WHILE.getLexeme());}
+
+    public void parseWhile(){
+        consumirPalavra(TipoPalavra.WHILE.getLexeme());
+        consumirSimbolo("(");
+        parseExpressao();
+        consumirSimbolo(")");
+        parseBlocoOuComando();
+    }
+
+    private boolean verificaDoWhile(){return TipoPalavra.isPalavra(TipoPalavra.DO.getLexeme());}
+
+    public void parseDoWhile(){
+        consumirPalavra(TipoPalavra.DO.getLexeme());
+        parseBlocoOuComando();
+        consumirPalavra(TipoPalavra.WHILE.getLexeme());
+        consumirSimbolo("(");
+        parseExpressao();
+        consumirSimbolo(")");
+        consumirSimbolo(";");
+    }
+    private boolean verificaIf(){return TipoPalavra.isPalavra(TipoPalavra.IF.getLexeme());}
+
+    public void parseIf(){
+        consumirPalavra(TipoPalavra.IF.getLexeme());
+        consumirSimbolo("(");
+        parseExpressao();
+        consumirSimbolo(")");
+        parseBlocoOuComando();
+        if(TipoPalavra.isPalavra(TipoPalavra.ELSE.getLexeme())){
+            consumirPalavra(TipoPalavra.ELSE.getLexeme());
+            parseBlocoOuComando();
+        }
+    }
+    private boolean verificaSwitch(){return TipoPalavra.isPalavra(TipoPalavra.SWITCH.getLexeme());}
+
+    public void parseSwitch(){
+        consumirPalavra(TipoPalavra.SWITCH.getLexeme());
+        consumirSimbolo("(");
+        parseExpressao();
+        consumirSimbolo(")");
+        consumirSimbolo("{");
+
+        while(TipoPalavra.isPalavra(TipoPalavra.CASE.getLexeme())){
+            consumirPalavra(TipoPalavra.CASE.getLexeme());
+            consumirSimbolo("(");
+            parseLiteral();
+            consumirSimbolo(")");
+            parseBlocoCodigo();
+        }
+        if(TipoPalavra.isPalavra(TipoPalavra.DEFAULT.getLexeme())){
+            consumirPalavra(TipoPalavra.DEFAULT.getLexeme());
+            parseBlocoCodigo();
+        }
+        consumirSimbolo("}");
+
+    }
 }
 
